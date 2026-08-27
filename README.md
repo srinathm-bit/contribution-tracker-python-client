@@ -53,7 +53,13 @@ pip install -r requirements.txt
 
 ## ⚙️ Configuration
 
-The application forwards requests to a core backend API. The base URL can be configured using an environment variable `API_BASE_URL`.
+The application forwards requests to a core backend API. The base URL can be configured using an environment variable `API_BASE_URL` or a `.env` file.
+
+### `.env` Setup
+Copy [.env.example](file:///c:/Users/jai08/projects/contribution-tracker-python-client/.env.example) to `.env`:
+```bash
+cp .env.example .env
+```
 
 - **Default Base URL**: `http://127.0.0.1:8005`
 
@@ -66,6 +72,7 @@ Or on Linux/macOS:
 ```bash
 export API_BASE_URL="http://127.0.0.1:8005"
 ```
+
 
 ---
 
