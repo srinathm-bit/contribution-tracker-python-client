@@ -1,74 +1,69 @@
-from  config import uca_client
+from fastapi import APIRouter
+from pydantic import BaseModel
+from typing import Optional
 import requests
-import json
+from config import BASE_URL
+
+router = APIRouter(prefix="/event", tags=["Event Tracker"])
 
 
-@uca_client.action
-def event_registration(name: str, date: str, location: str, user_id: int) -> str:
-    url = "http://127.0.0.1:8005/event/event_registration"
-    body_data = {
-        "user_id": user_id,
-        "name": name,
-        "date": date,
-        "location": location
-    }
+class EventRegistrationSchema(BaseModel):
+    name: str
+    date: str
+    location: str
+    user_id: int
+
+
+@router.post("/event_registration")
+def event_registration(event: EventRegistrationSchema):
+    url = f"{BASE_URL}/event/event_registration"
+    body_data = event.model_dump()
     response = requests.post(url, json=body_data)
-    json_response = response.json()
-    print(json_response)
 
     if response.status_code == 200:
-        return json.dumps(json_response)
-
+        return response.json()
     else:
-        message = 'registration failed'
-        return json.dumps({"status": False, 'message': message})
+        return {"status": False, "message": "registration failed"}
 
-@uca_client.action
-def read_one_event(event_id: int) -> str:
-    url = "http://127.0.0.1:8005/event/"+ str(event_id)
-    resposne = requests.get(url)
 
-    if resposne.status_code == 200:
-        json_response = resposne.json()
-        return json.dumps(json_response)
+@router.get("/{event_id}")
+def read_one_event(event_id: int):
+    url = f"{BASE_URL}/event/{event_id}"
+    response = requests.get(url)
+
+    if response.status_code == 200:
+        return response.json()
     else:
-        message = "failed to read event"
-        return json.dumps({"status": False, "message": message})
+        return {"status": False, "message": "failed to read event"}
 
 
-@uca_client.action
-def delete_event(event_id: int) -> str:
-    url = "http://127.0.0.1:8005/event/"+ str(event_id)
+@router.delete("/{event_id}")
+def delete_event(event_id: int):
+    url = f"{BASE_URL}/event/{event_id}"
     response = requests.delete(url)
 
     if response.status_code == 200:
-        json_response = response.json()
-        return json.dumps(json_response)
+        return response.json()
     else:
-        message = "failed to delete event"
-        return json.dumps({"status": False, "message": message})
+        return {"status": False, "message": "failed to delete event"}
 
-@uca_client.action
-def read_all_events() -> list[list[str]]:
-    url = "http://127.0.0.1:8005/event/"
+
+@router.get("/")
+def read_all_events():
+    url = f"{BASE_URL}/event/"
     response = requests.get(url)
-    event_list = [["id", "user_id", "name", "date", "location"]]
-    json_response = response.json()
 
     if response.status_code == 200:
+        json_response = response.json()
+        event_list = [["id", "user_id", "name", "date", "location"]]
         for event in json_response:
             event_list.append([
-                str(event['id']),
-                str(event['user_id']),
-                event['name'],
-                event['date'],
-                event['location']
+                str(event.get("id", "")),
+                str(event.get("user_id", "")),
+                str(event.get("name", "")),
+                str(event.get("date", "")),
+                str(event.get("location", ""))
             ])
         return event_list
-
     else:
-        message  = "failed to read events"
-        return {'status': False, 'message': message}
-
-
-
+        return {"status": False, "message": "failed to read events"}

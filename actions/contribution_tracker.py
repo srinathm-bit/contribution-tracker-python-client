@@ -1,116 +1,104 @@
-from config import uca_client
+from fastapi import APIRouter
+from pydantic import BaseModel
+from typing import Optional, Union
 import requests
-import json
+from config import BASE_URL
+
+router = APIRouter(prefix="/contribution", tags=["Contribution Tracker"])
 
 
-@uca_client.action
-def contribution_registation(event_id: int, amount: int, name: str = None, address: str = None, mobile_number: str = None) -> str:
-    url = "http://127.0.0.1:8005/contribution/contributions_registration"
-    body_data = {
-        "event_id": event_id,
-        "name": name,
-        "address": address,
-        "amount": amount,
-        "mobile_number": mobile_number
-    }
+class ContributionRegistrationSchema(BaseModel):
+    event_id: int
+    amount: int
+    name: Optional[str] = None
+    address: Optional[str] = None
+    mobile_number: Optional[str] = None
+
+
+class ContributionUpdateSchema(BaseModel):
+    event_id: int
+    name: str
+    address: str
+    amount: int
+    mobile_number: Union[str, int]
+
+
+@router.post("/contributions_registration")
+def contribution_registration(contribution: ContributionRegistrationSchema):
+    url = f"{BASE_URL}/contribution/contributions_registration"
+    body_data = contribution.model_dump()
     response = requests.post(url, json=body_data)
-    json_response = response.json()
-    print(json_response)
-    print(response.status_code)
+
     if response.status_code == 200:
-        json_response = response.json()
-        return json.dumps(json_response)
-
+        return response.json()
     else:
-        message = 'registration failed'
-        return json.dumps({"status": False, 'message': message})
+        return {"status": False, "message": "registration failed"}
 
 
-@uca_client.action
-def delete_contribution(contribution_id: int) -> str:
-    url = "http://127.0.0.1:8005/contribution/" + str(contribution_id)
+@router.delete("/{contribution_id}")
+def delete_contribution(contribution_id: int):
+    url = f"{BASE_URL}/contribution/{contribution_id}"
     response = requests.delete(url)
-    json_response = response.json()
-    if response.status_code == 200:
-        json_response = response.json()
-        return json.dumps(json_response)
-    else:
-        message = "failed to delete event"
-        status_code = response.status_code
-        return json.dumps({"status": False, "status code": status_code, "message": message})
 
-@uca_client.action
-def read_one_contribution(contribution_id:int) -> str:
-    url = "http://127.0.0.1:8005/contribution/" + str(contribution_id)
+    if response.status_code == 200:
+        return response.json()
+    else:
+        return {"status": False, "status_code": response.status_code, "message": "failed to delete contribution"}
+
+
+@router.get("/{contribution_id}")
+def read_one_contribution(contribution_id: int):
+    url = f"{BASE_URL}/contribution/{contribution_id}"
+    response = requests.get(url)
+
+    if response.status_code == 200:
+        return response.json()
+    else:
+        return {"status": False, "message": "failed to read contribution"}
+
+
+@router.get("/read_all/{event_id}")
+def read_all_contributions(event_id: str):
+    url = f"{BASE_URL}/contribution/read_all/{event_id}"
     response = requests.get(url)
 
     if response.status_code == 200:
         json_response = response.json()
-        return json.dumps(json_response)
-    else:
-        message = "failed to read event"
-        return json.dumps({"status": False, "message": message})
-
-
-import requests
-
-
-@uca_client.action
-def read_all_contributions(event_id: str) -> list[list[str]]:
-    url = "http://127.0.0.1:8005/contributionread_all/" + str(event_id)
-    response = requests.get(url)
-
-    if response.status_code == 200:
-        json_response = response.json()
-
         contribution_list = [["id", "event_id", "name", "address", "amount", "mobile_number"]]
 
         for contribution in json_response:
             contribution_list.append([
-                str(contribution['id']),
-                str(contribution['event_id']),
-                contribution['name'],
-                contribution['address'],
-                str(contribution['amount']),
-                contribution['mobile_number']
+                str(contribution.get("id", "")),
+                str(contribution.get("event_id", "")),
+                str(contribution.get("name", "")),
+                str(contribution.get("address", "")),
+                str(contribution.get("amount", "")),
+                str(contribution.get("mobile_number", ""))
             ])
-
         return contribution_list
 
-    return  json.dumps({"status": False, "message": "failed to read contributions"})
+    return {"status": False, "message": "failed to read contributions"}
 
 
-@uca_client.action
-def contributions_report(event_id: int) -> str:
-    url = "http://127.0.0.1:8005/contribution/report/" + str(event_id)
+@router.get("/report/{event_id}")
+def contributions_report(event_id: int):
+    url = f"{BASE_URL}/contribution/report/{event_id}"
     response = requests.get(url)
 
     if response.status_code == 200:
-        json_response = response.json()
-        return json.dumps(json_response)
+        return response.json()
     else:
-        message = "failed to read event"
-        return json.dumps({"status": False, "message": message})
+        return {"status": False, "message": "failed to read contribution report"}
 
-@uca_client.action
-def update_contributions_report(contribution_id: int, event_id: int, name: str, address: str, amount: int, mobile_number: int) -> str:
-    url = f"http://127.0.0.1:8005/contribution/{contribution_id}"
-    body_data = {
-        "event_id": event_id,
-        "name": name,
-        "address": address,
-        "amount": amount,
-        "mobile_number": str(mobile_number)
-    }
 
-    print("Request Body:", body_data)
-
+@router.put("/{contribution_id}")
+def update_contributions_report(contribution_id: int, contribution: ContributionUpdateSchema):
+    url = f"{BASE_URL}/contribution/{contribution_id}"
+    body_data = contribution.model_dump()
+    body_data["mobile_number"] = str(body_data["mobile_number"])
     response = requests.put(url, json=body_data)
-    print("Response:", response)
 
     if response.status_code == 200:
-        json_response = response.json()
-        return json.dumps(json_response)
+        return response.json()
     else:
-        message = "Failed to update event"
-        return json.dumps({"status": False, "message": message})
+        return {"status": False, "message": "Failed to update contribution"}

@@ -1,77 +1,71 @@
-from config import uca_client
+from fastapi import APIRouter
+from pydantic import BaseModel
+from typing import Optional
 import requests
 import json
-from datetime import date
+from config import BASE_URL
+
+router = APIRouter(prefix="/user", tags=["User Tracker"])
 
 
-@uca_client.action
-def user_registration(name: str, email: str, dob: str = None, address: str = None, mobile_number: str = None) -> str:
-    url = "http://127.0.0.1:8005/user/user_registration"
-    body_data = {
-        "name": name,
-        "dob": dob,
-        "email": email,
-        "address": address,
-        "mobile_number": mobile_number
-    }
+class UserRegistrationSchema(BaseModel):
+    name: str
+    email: str
+    dob: Optional[str] = None
+    address: Optional[str] = None
+    mobile_number: Optional[str] = None
+
+
+@router.post("/user_registration")
+def user_registration(user: UserRegistrationSchema):
+    url = f"{BASE_URL}/user/user_registration"
+    body_data = user.model_dump()
     response = requests.post(url, json=body_data)
-    json_response = response.json()
-    print(json_response)
 
     if response.status_code == 200:
-        json_response = response.json()
-        return json.dumps(json_response)
-
+        return response.json()
     else:
-        message = 'registration failed'
-        return json.dumps({"status": False, 'message': message})
+        return {"status": False, "message": "registration failed"}
 
 
-@uca_client.action
-def read_one_user(uesr_id: int) -> str:
-    url = "http://127.0.0.1:8005/user/" + str(uesr_id)
+@router.get("/{user_id}")
+def read_one_user(user_id: int):
+    url = f"{BASE_URL}/user/{user_id}"
     response = requests.get(url)
 
     if response.status_code == 200:
-        json_response = response.json()
-        print(json_response)
-        return json.dumps(json_response)
+        return response.json()
     else:
-        message = 'user not found'
-        return (json.dumps({"status": False, 'message': message}))
+        return {"status": False, "message": "user not found"}
 
 
-@uca_client.action
-def delete_user(user_id: int) -> str:
-    url = "http://127.0.0.1:8005/user/" + str(user_id)
+@router.delete("/{user_id}")
+def delete_user(user_id: int):
+    url = f"{BASE_URL}/user/{user_id}"
     response = requests.delete(url)
 
     if response.status_code == 200:
-        json_response = response.json()
-        print(json_response)
-        return json.dumps(json_response)
-
+        return response.json()
     else:
-        message = 'user not found'
-        return json.dumps({'status': False, 'message': message})
+        return {"status": False, "message": "user not found"}
 
 
-@uca_client.action
-def read_all_users() -> list[list[str]]:
-    url = "http://127.0.0.1:8005/user/"
+@router.get("/")
+def read_all_users():
+    url = f"{BASE_URL}/user/"
     response = requests.get(url)
 
-    users_list = [['id', 'name', 'dob', 'email', 'address', 'mobile_number']]
-
-    json_response = response.json()
-    for user in json_response:
-        users_list.append([
-            str(user["id"]),
-            str(user["name"]),
-            user["dob"],
-            user["email"],
-            user["address"],
-            user["mobile_number"]
-        ])
-
-    return users_list
+    if response.status_code == 200:
+        json_response = response.json()
+        users_list = [["id", "name", "dob", "email", "address", "mobile_number"]]
+        for user in json_response:
+            users_list.append([
+                str(user.get("id", "")),
+                str(user.get("name", "")),
+                str(user.get("dob", "")),
+                str(user.get("email", "")),
+                str(user.get("address", "")),
+                str(user.get("mobile_number", ""))
+            ])
+        return users_list
+    return {"status": False, "message": "failed to read users"}
