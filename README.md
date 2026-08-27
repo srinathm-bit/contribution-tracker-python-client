@@ -69,13 +69,26 @@ export API_BASE_URL="http://127.0.0.1:8005"
 
 ---
 
-## 🗄️ Database Architecture (MySQL)
+## 🗄️ Database Architecture & Credentials (MySQL)
 
-The system relies on a **MySQL relational database** connected via the backend service to store and manage entities with foreign key relationships:
+### Database Connection Flow
+1. **Backend Service (`http://127.0.0.1:8005`)**: The core backend API service connects directly to the **MySQL Database** where tables (`users`, `events`, `contributions`) are created and persisted.
+2. **FastAPI Client App (This Project)**: Routes requests via `BASE_URL` in [config.py](file:///c:/Users/jai08/projects/contribution-tracker-python-client/config.py) to the backend service.
 
-- **`users` Table**: Stores user accounts (`id`, `name`, `email`, `dob`, `address`, `mobile_number`).
-- **`events` Table**: Stores events linked to users via `user_id` foreign key (`id`, `user_id`, `name`, `date`, `location`).
-- **`contributions` Table**: Stores donation contributions linked to events via `event_id` foreign key (`id`, `event_id`, `name`, `address`, `amount`, `mobile_number`).
+### Database Credentials Configuration
+Database credentials (Host, Port, Username, Password, Database Name) are configured in the **core backend service** (port 8005). 
+
+If you choose to connect directly to MySQL from this FastAPI app (e.g., using SQLAlchemy / PyMySQL), add the following environment variables to a `.env` file:
+
+```env
+# Optional: Direct MySQL Database Credentials
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_USER=root
+DB_PASSWORD=your_mysql_password
+DB_NAME=contribution_tracker_db
+```
+
 
 
 ---
