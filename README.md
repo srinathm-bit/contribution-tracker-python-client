@@ -1,16 +1,18 @@
 # Contribution Tracker API
 
-A lightweight, high-performance REST API built with **FastAPI** to manage **Users**, **Events**, and **Contributions**. The API bridges request routing to a underlying backend service and automatically generates interactive **Swagger UI** and **ReDoc** documentation.
+A lightweight, high-performance REST API built with **FastAPI** to manage **Users**, **Events**, and **Contributions**. The API bridges request routing to an underlying backend service backed by a **MySQL Database** and automatically generates interactive **Swagger UI** and **ReDoc** documentation.
 
 ---
 
 ## 🚀 Features
 
-- **User Management (`/user`)**: Register new users, query user profiles, list all users, and delete user accounts.
-- **Event Management (`/event`)**: Register events associated with user IDs, retrieve event details, list events, and delete events.
-- **Contribution Tracking (`/contribution`)**: Register financial or resource contributions tied to events, generate event contribution reports, update contribution details, list contributions by event, and delete entries.
+- **User Management (`/user`)**: Register new users, query user profiles, list all users, and delete user accounts persisted in MySQL.
+- **Event Management (`/event`)**: Register events associated with user IDs, retrieve event details, list events, and delete events stored in MySQL.
+- **Contribution Tracking (`/contribution`)**: Register financial or resource contributions tied to events, generate event contribution reports, update contribution details, list contributions by event, and delete entries stored in MySQL.
+- **MySQL Database Backend**: Relational database storage for persistent data integrity across Users, Events, and Contributions.
 - **Interactive Swagger UI**: Explore and test API endpoints directly from your browser at `/docs`.
 - **No Authentication Required**: Simple, open REST API design for quick integration and local development.
+
 
 ---
 
@@ -64,6 +66,17 @@ Or on Linux/macOS:
 ```bash
 export API_BASE_URL="http://127.0.0.1:8005"
 ```
+
+---
+
+## 🗄️ Database Architecture (MySQL)
+
+The system relies on a **MySQL relational database** connected via the backend service to store and manage entities with foreign key relationships:
+
+- **`users` Table**: Stores user accounts (`id`, `name`, `email`, `dob`, `address`, `mobile_number`).
+- **`events` Table**: Stores events linked to users via `user_id` foreign key (`id`, `user_id`, `name`, `date`, `location`).
+- **`contributions` Table**: Stores donation contributions linked to events via `event_id` foreign key (`id`, `event_id`, `name`, `address`, `amount`, `mobile_number`).
+
 
 ---
 
