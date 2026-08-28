@@ -2,15 +2,22 @@ from fastapi import FastAPI
 import uvicorn
 from actions import user_tracker, event_tracker, contribution_tracker
 
+from database import init_db
+
 app = FastAPI(
     title="Contribution Tracker API",
     description="REST API service providing access to User, Event, and Contribution operations with Swagger UI documentation.",
     version="1.0.0"
 )
 
+@app.on_event("startup")
+def startup_event():
+    init_db()
+
 app.include_router(user_tracker.router)
 app.include_router(event_tracker.router)
 app.include_router(contribution_tracker.router)
+
 
 
 @app.get("/", tags=["Root"])

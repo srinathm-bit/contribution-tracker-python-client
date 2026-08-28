@@ -179,7 +179,7 @@ Once the server is running on `http://127.0.0.1:8000`, open your browser to acce
 | `PUT` | `/contribution/{contribution_id}` | Update contribution details | Body: `event_id`, `name`, `address`, `amount`, `mobile_number` |
 | `DELETE` | `/contribution/{contribution_id}` | Delete contribution by ID | Path: `contribution_id` (int) |
 | `GET` | `/contribution/read_all/{event_id}` | List all contributions for an event | Path: `event_id` (str/int) |
-| `GET` | `/contribution/report/{event_id}` | Generate contribution summary report for an event | Path: `event_id` (int) |
+
 
 #### Contribution Registration Request Example:
 ```json
