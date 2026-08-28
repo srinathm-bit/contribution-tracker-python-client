@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 import uvicorn
-from actions import user_tracker, event_tracker, contribution_tracker
+from actions import user_tracker, event_tracker, contribution_tracker, analytics_tracker
 
 app = FastAPI(
     title="Contribution Tracker API",
@@ -11,6 +11,7 @@ app = FastAPI(
 app.include_router(user_tracker.router)
 app.include_router(event_tracker.router)
 app.include_router(contribution_tracker.router)
+app.include_router(analytics_tracker.router)
 
 
 @app.get("/", tags=["Root"])
